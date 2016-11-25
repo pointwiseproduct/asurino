@@ -10,7 +10,10 @@
 #include <functional>
 #include <regex>
 #include <random>
+#include <chrono>
+#include <thread>
 #include <cmath>
+#include <cstdlib>
 #include <mecab.h>
 
 std::unique_ptr<MeCab::Model> mecab_model(MeCab::createModel(""));
@@ -914,6 +917,8 @@ public:
     std::vector<frame> sentence_vec;
 };
 
+std::string user_name;
+
 std::vector<std::string> read_log(std::istream &is){
     std::vector<std::string> raw;
     while(!is.fail()){
@@ -923,11 +928,15 @@ std::vector<std::string> read_log(std::istream &is){
     }
     const std::string head = "[0m[92;49m";
     std::vector<std::string> content;
+    bool asurinos_post = false;
     for(auto &i : raw){
         if(i.size() > head.size() && i.substr(0, head.size()) == head){
+            asurinos_post = i.find(user_name) != std::string::npos;
             continue;
         }
-        content.push_back(i);
+        if(!asurinos_post){
+            content.push_back(i);
+        }
     }
 
     std::string head2;
@@ -953,9 +962,10 @@ std::vector<std::string> read_log(std::istream &is){
     std::vector<std::string> content2;
     std::size_t count = 0;
     std::string tw;
+    content[0] = head2;
     while(count < content.size()){
         std::string str = content[count];
-        if(str.size() > head2.size() && str.substr(0, head2.size()) == head2){
+        if(str.size() >= head2.size() && str.substr(0, head2.size()) == head2){
             if(!tw.empty()){
                 std::string str1 = std::regex_replace(tw, std::regex(R"(http(s)?://([\w-]+\.)+[\w-]+(/[\w- ./?%&=]*)?)"), "");
                 std::string str2 = std::regex_replace(str1, std::regex(R"(@[a-zA-Z0-9_]+)"), "");
@@ -974,7 +984,9 @@ std::vector<std::string> read_log(std::istream &is){
         ++count;
     }
     if(!tw.empty()){
-        content2.push_back(tw);
+        std::string str1 = std::regex_replace(tw, std::regex(R"(http(s)?://([\w-]+\.)+[\w-]+(/[\w- ./?%&=]*)?)"), "");
+        std::string str2 = std::regex_replace(str1, std::regex(R"(@[a-zA-Z0-9_]+)"), "");
+        content2.push_back(str2);
     }
     return content2;
 }
@@ -1018,17 +1030,69 @@ std::string make_sentence(const word_graph &w, const sentences &s, const std::st
     return r;
 }
 
-int main (int argc, char **argv) {
+void init_rc(){
+    user_name = "asurino_bot";
+    std::ofstream ofile("./asurino_rc");
+    ofile << user_name;
+}
+
+void load_rc(){
+    std::ifstream ifile("./asurino_rc");
+    if(ifile.fail()){
+        init_rc();
+    }else{
+        ifile >> user_name;
+    }
+}
+
+int main (){
+    load_rc();
+
     word_graph w;
     sentences s;
-    std::ifstream ifile("log.txt");
-    auto log = read_log(ifile);
-    for(auto &i : log){
-        auto v = token::make_vector(mecab_tagger->parseToNode(i.c_str()));
-        w.set_str(v);
-        s.add_sentence(v);
+
+    {
+        std::ifstream ifile("word_graph");
+        if(!ifile.fail()){
+            w.restore(ifile);
+        }
     }
-    std::cout << make_sentence(w, s, "人生について") << std::endl;
+    {
+        std::ifstream ifile("sentences");
+        if(!ifile.fail()){
+            s.restore(ifile);
+        }
+    }
+
+    std::chrono::time_point<std::chrono::system_clock> prev;
+    prev = std::chrono::system_clock::now() - std::chrono::seconds(1800 + 10);
+    while(true){
+        if(std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - prev).count() >= 1800){
+            prev = std::chrono::system_clock::now();
+
+            s.sentence_vec.clear();
+            std::system(("ctw -u " + user_name + " -r > log.txt").c_str());
+            std::ifstream ifile("log.txt");
+            auto log = read_log(ifile);
+            for(auto &i : log){
+                auto v = token::make_vector(mecab_tagger->parseToNode(i.c_str()));
+                w.set_str(v);
+                s.add_sentence(v);
+            }
+            std::string r = make_sentence(w, s, log.back());
+            std::system(("ctw -u " + user_name + " -p \"" + r + "\"").c_str());
+
+            {
+                std::ofstream ofile("word_graph");
+                w.serialize(ofile);
+            }
+            {
+                std::ofstream ofile("sentences");
+                s.serialize(ofile);
+            }
+        } 
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
 
     return 0;
 }
