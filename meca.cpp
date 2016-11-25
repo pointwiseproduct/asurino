@@ -117,7 +117,8 @@ struct token;
 using token_vector = std::vector<token>;
 
 struct token{
-    static const std::size_t size = 9;
+    // +1分はrawな形態素データ
+    static const std::size_t size = 9 + 1;
 
     token(){
         for(int i = 0; i < size; ++i){
@@ -160,7 +161,7 @@ struct token{
     std::string &form = data[5];
 
     // 形態素の文字列．
-    std::string &str = data[6];
+    std::string &str = data[size - 1];
 
     bool operator <(const token &other) const{
         for(int i = 0; i < size; ++i){
@@ -182,6 +183,12 @@ struct token{
         return true;
     }
 
+    void clear_unique_data(){
+        for(std::size_t i = 6; i < size; ++i){
+            data[i] = "*";
+        }
+    }
+
     bool is_eos() const{
         static const std::string str = "BOS/EOS";
         return noun == str;
@@ -193,6 +200,8 @@ struct token{
         for(int i = 0; i < size; ++i){
             data[i].clear();
         }
+
+        data[size - 1] = std::string(n.surface, n.surface + n.length);
 
         std::size_t str_count = 0;
         for(int count = 0; raw_data[str_count]; ++count){
@@ -974,9 +983,7 @@ std::map<token, std::vector<token>> make_word_could(const std::set<token> &set){
     std::map<token, std::vector<token>> r;
     for(auto &i : set){
         token t = i;
-        t.data[6] = "*";
-        t.data[7] = "*";
-        t.data[8] = "*";
+        t.clear_unique_data();
         r[t].push_back(i);
     }
     return std::move(r);
@@ -996,18 +1003,16 @@ std::string make_sentence(const word_graph &w, const sentences &s, const std::st
     for(auto &i : f.vec){
         if(i.knockout){
             token u = i.t;
-            u.data[8] = "*";
-            u.data[7] = "*";
-            u.data[6] = "*";
+            u.clear_unique_data();
             auto iter = cloud.find(u);
             if(iter == cloud.end()){
-                r += i.t.data[6];
+                r += i.t.data[i.t.size - 1];
             }else{
                 const auto &v = iter->second;
-                r += v[rnd() % v.size()].data[6];
+                r += v[rnd() % v.size()].data[i.t.size - 1];
             }
         }else{
-            r += i.t.data[6];
+            r += i.t.data[i.t.size - 1];
         }
     }
     return r;
