@@ -117,7 +117,7 @@ struct token;
 using token_vector = std::vector<token>;
 
 struct token{
-    // +1•ª‚Íraw‚ÈŒ`‘Ô‘fƒf[ƒ^
+    // +1åˆ†ã¯rawãªå½¢æ…‹ç´ ãƒ‡ãƒ¼ã‚¿
     static const std::size_t size = 9 + 1;
 
     token(){
@@ -150,17 +150,17 @@ struct token{
     std::string data[size];
     const std::string *data_end = data + size;
 
-    // •iŒD
+    // å“è©ï¼
     std::string &noun = data[0];
 
-    // •iŒ‚ÌÚ×D
+    // å“è©ã®è©³ç´°ï¼
     std::string *noun_detail = &data[0];
     std::string *noun_detail_end = &data[6];
 
-    // Œ`‘Ô‘f‚ÌŒ`D
+    // å½¢æ…‹ç´ ã®å½¢ï¼
     std::string &form = data[5];
 
-    // Œ`‘Ô‘f‚Ì•¶š—ñD
+    // å½¢æ…‹ç´ ã®æ–‡å­—åˆ—ï¼
     std::string &str = data[size - 1];
 
     bool operator <(const token &other) const{
@@ -219,7 +219,7 @@ struct token{
         }
     }
 
-    // •iŒî•ñ‚ÉŠY“–‚·‚é‚à‚Ì‚ª‚ ‚é‚©‚Ç‚¤‚©’²‚×‚é
+    // å“è©æƒ…å ±ã«è©²å½“ã™ã‚‹ã‚‚ã®ãŒã‚ã‚‹ã‹ã©ã†ã‹èª¿ã¹ã‚‹
     bool contain_noun_detail(const std::string &info) const{
         for(std::size_t i = 1; i <= 5; ++i){
             if(data[i] == info){
@@ -229,7 +229,7 @@ struct token{
         return false;
     }
 
-    // •¶š—ñ‚ÉƒVƒŠƒAƒ‰ƒCƒY‚·‚é
+    // æ–‡å­—åˆ—ã«ã‚·ãƒªã‚¢ãƒ©ã‚¤ã‚ºã™ã‚‹
     std::string serialize() const{
         std::string r;
         for(std::size_t i = 0; i < size; ++i){
@@ -241,7 +241,7 @@ struct token{
         return r;
     }
 
-    // ƒVƒŠƒAƒ‰ƒCƒY‚³‚ê‚½•¶š—ñ‚©‚ç•œŒ³‚·‚é
+    // ã‚·ãƒªã‚¢ãƒ©ã‚¤ã‚ºã•ã‚ŒãŸæ–‡å­—åˆ—ã‹ã‚‰å¾©å…ƒã™ã‚‹
     void restore(const std::string str){
         std::size_t count = 0;
         for(std::size_t i = 0; i < size; ++i){
@@ -258,8 +258,8 @@ struct token{
         }
     }
 
-    // •iŒƒ}ƒbƒ`D
-    // •iŒî•ñ "*" ‚Í–³§ŒÀ‚Éƒ}ƒbƒ`‚·‚éD
+    // å“è©ãƒãƒƒãƒï¼
+    // å“è©æƒ…å ± "*" ã¯ç„¡åˆ¶é™ã«ãƒãƒƒãƒã™ã‚‹ï¼
     static bool noun_match(const token &lhs, const token &rhs){
         std::string *liter = lhs.noun_detail;
         std::string *riter = lhs.noun_detail;
@@ -341,7 +341,7 @@ public:
             rule_tree_map[i][i].rules[pos].resize(1);
             rule_tree_map[i][i].rules[pos][0] = rule::end_rule(pos);
         }
-        // ƒ{ƒgƒ€ƒAƒbƒvD
+        // ãƒœãƒˆãƒ ã‚¢ãƒƒãƒ—ï¼
         for(std::size_t n = 1; n < N; ++n){
             for(std::size_t i = 0; i < N - n; ++i){
                 std::size_t x = i;
@@ -349,7 +349,7 @@ public:
                 for(std::size_t j = 1; j < 1 + n; ++j){
                     for(std::size_t rule_index = 0; rule_index < rules.size(); ++rule_index){
                         rule &rule_ = rules[rule_index];
-                        // CYKD
+                        // CYKï¼
                         double *left_ptr = nullptr;
                         {
                             auto &map = node_map[x][x + (j - 1)].inside;
@@ -386,7 +386,7 @@ public:
                         node_map[x][y].inside[rule_.source] = old + rule_.probability * left * bottom;
 
                         if(rule_.probability * left * bottom > 0){
-                            // Å–Ş„’è—pD
+                            // æœ€å°¤æ¨å®šç”¨ï¼
                             rule_tree_map[x][y].rules[rule_.source].push_back(rule_);
                             rule_tree::coordinate &left = rule_tree_map[x][y].left[rule_.to_string()];
                             left.x = x;
@@ -400,11 +400,11 @@ public:
                 }
             }
         }
-        // ”ñó—”»’èD
+        // éå—ç†åˆ¤å®šï¼
         if(node_map[0][N - 1].inside["S"] == 0){
             return false;
         }
-        // ŠO‘¤‰Šú‰»D
+        // å¤–å´åˆæœŸåŒ–ï¼
         for(std::size_t i = 0; i < N; ++i){
             for(std::size_t n = 0; n < N - i; ++n){
                 for(auto &source : to_unique_array(map<rule, std::string>(rules, [](const rule &f){ return f.source; }))){
@@ -414,9 +414,9 @@ public:
                 }
             }
         }
-        // ’¸“_’è‹`D
+        // é ‚ç‚¹å®šç¾©ï¼
         node_map[0][N - 1].outside["S"] = 1;
-        // ƒgƒbƒvƒ_ƒEƒ“D
+        // ãƒˆãƒƒãƒ—ãƒ€ã‚¦ãƒ³ï¼
         for(int n = N - 1; n >= 0; --n){
             for(std::size_t i = 0; i < N - n; ++i){
                 std::size_t x = i;
@@ -425,7 +425,7 @@ public:
                     const rule &rule_ = rules[rule_index];
                     if(node_map[x][y].outside[rule_.source] > 0){
                         for(std::size_t k = 1; static_cast<int>(k) < 1 + n; ++k){
-                            // ‰º‘¤D
+                            // ä¸‹å´ï¼
                             if(node_map[x + k][y].inside[rule_.result2] > 0){
                                 double value = 
                                     node_map[x + k][y].inside[rule_.result2] +
@@ -434,7 +434,7 @@ public:
                                         node_map[x][x - (1 - k)].inside[rule_.result1]);
                                 node_map[x + k][y].outside[rule_.result2] = value;
                             }
-                            // ¶‘¤D
+                            // å·¦å´ï¼
                             if(node_map[x][y - k].inside[rule_.result1] > 0){
                                 double value =
                                     node_map[x][y - k].outside[rule_.result1] +
@@ -563,17 +563,17 @@ private:
 
 void test_myparser(){
     std::vector<rule> rules = {
-        rule("S>–¼Œ‹å Œ`—eŒ 0.5"),
-        rule("S>–¼Œ‹å –¼Œ 0.3"),
-        rule("S>–¼Œ‹å “®Œ 0.2"),
-        rule("–¼Œ>Œ`—eŒ –¼Œ 1.0"),
-        rule("–¼Œ‹å>–¼Œ •Œ 1.0"),
-        rule("Œ`—eŒ>–¼Œ •Œ 0.1"),
-        rule("Œ`—eŒ>–¼Œ “®Œ 0.2"),
-        rule("Œ`—eŒ>•›Œ Œ`—eŒ 0.4"),
-        rule("Œ`—eŒ>•›Œ Œ`—eŒ 0.3"),
-        rule("“®Œ>•›Œ “®Œ‹å 0.5"),
-        rule("“®Œ>–¼Œ •“®Œ 0.5")
+        rule("S>åè©å¥ å½¢å®¹è© 0.5"),
+        rule("S>åè©å¥ åè© 0.3"),
+        rule("S>åè©å¥ å‹•è© 0.2"),
+        rule("åè©>å½¢å®¹è© åè© 1.0"),
+        rule("åè©å¥>åè© åŠ©è© 1.0"),
+        rule("å½¢å®¹è©>åè© åŠ©è© 0.1"),
+        rule("å½¢å®¹è©>åè© å‹•è© 0.2"),
+        rule("å½¢å®¹è©>å‰¯è© å½¢å®¹è© 0.4"),
+        rule("å½¢å®¹è©>å‰¯è© å½¢å®¹è© 0.3"),
+        rule("å‹•è©>å‰¯è© å‹•è©å¥ 0.5"),
+        rule("å‹•è©>åè© åŠ©å‹•è© 0.5")
     };
 
     std::function<std::size_t(
@@ -647,7 +647,7 @@ public:
         std::list<token> link;
         std::map<token, std::list<token>::iterator> link_map;
 
-        // ƒŠƒ“ƒN‚Éƒ[ƒh‚ğ’Ç‰Á‚·‚é
+        // ãƒªãƒ³ã‚¯ã«ãƒ¯ãƒ¼ãƒ‰ã‚’è¿½åŠ ã™ã‚‹
         void add_link(const token &t){
             auto iter = link_map.find(t);
             if(iter == link_map.end()){
@@ -660,7 +660,7 @@ public:
             }
         }
 
-        // ƒVƒŠƒAƒ‰ƒCƒY
+        // ã‚·ãƒªã‚¢ãƒ©ã‚¤ã‚º
         std::string serialize() const{
             std::string r = t.serialize();
             for(auto &i : link){
@@ -670,7 +670,7 @@ public:
             return r;
         }
 
-        // •¡‡‚·‚é
+        // è¤‡åˆã™ã‚‹
         void restore(const std::string &str){
             std::stringstream ss(str);
             std::string line;
@@ -694,7 +694,7 @@ public:
     std::list<node_frame> data_vec;
     std::map<token, std::list<node_frame>::iterator> data_map;
 
-    // •¶š—ñ‚ğ‰ğÍ‚·‚é
+    // æ–‡å­—åˆ—ã‚’è§£æã™ã‚‹
     void set_str(const token_vector &vec){
         std::vector<decltype(data_map)::iterator> iter_vec;
         std::vector<bool> flag_vec;
@@ -728,7 +728,7 @@ public:
         }
     }
 
-    // ŠÖ˜AŒê‚ğæ“¾‚·‚é
+    // é–¢é€£èªã‚’å–å¾—ã™ã‚‹
     void get_relational_words(std::set<token> &set, const token &t, int chain) const{
         if(chain <= 0){
             return;
@@ -742,31 +742,31 @@ public:
         }
     }
 
-    // ƒ†ƒj[ƒNƒ[ƒh‚ğƒtƒBƒ‹ƒ^[‚·‚é
+    // ãƒ¦ãƒ‹ãƒ¼ã‚¯ãƒ¯ãƒ¼ãƒ‰ã‚’ãƒ•ã‚£ãƒ«ã‚¿ãƒ¼ã™ã‚‹
     static bool unique_word_filter(const token &t){
         if(t.data[6] == ""){
             return false;
         }
-        if(t.data[0] == "–¼Œ"){
-            if(t.data[2] == "ˆê”Ê"){
+        if(t.data[0] == "åè©"){
+            if(t.data[2] == "ä¸€èˆ¬"){
                 return false;
             }
-            if(t.contain_noun_detail("•›Œ‰Â”\")){
+            if(t.contain_noun_detail("å‰¯è©å¯èƒ½")){
                 return false;
             }
-            if(t.contain_noun_detail("•”Œ")){
+            if(t.contain_noun_detail("åŠ©æ•°è©")){
                 return false;
             }
-            if(t.contain_noun_detail("”")){
+            if(t.contain_noun_detail("æ•°")){
                 return false;
             }
             return true;
         }
-        if(t.data[0] == "“®Œ"){
-            if(t.contain_noun_detail("”ñ©—§")){
+        if(t.data[0] == "å‹•è©"){
+            if(t.contain_noun_detail("éè‡ªç«‹")){
                 return false;
             }
-            if(t.contain_noun_detail("ˆê’i") && t.contain_noun_detail("–¢‘RŒ`")){
+            if(t.contain_noun_detail("ä¸€æ®µ") && t.contain_noun_detail("æœªç„¶å½¢")){
                 return false;
             }
             return true;
@@ -774,9 +774,9 @@ public:
         return false;
     }
 
-    // ƒ[ƒh‚ğ‹L˜^‚·‚é
-    // ‹L˜^“à‚ÉŠù‚É‚ ‚ê‚Îíœ‘Ò‚¿ƒLƒ…[‚Ì‘O‚É‚à‚Á‚Ä‚¢‚­
-    // (‘O‚É‚ ‚é‚Æíœ‚³‚ê‚È‚¢)
+    // ãƒ¯ãƒ¼ãƒ‰ã‚’è¨˜éŒ²ã™ã‚‹
+    // è¨˜éŒ²å†…ã«æ—¢ã«ã‚ã‚Œã°å‰Šé™¤å¾…ã¡ã‚­ãƒ¥ãƒ¼ã®å‰ã«ã‚‚ã£ã¦ã„ã
+    // (å‰ã«ã‚ã‚‹ã¨å‰Šé™¤ã•ã‚Œãªã„)
     std::map<token, std::list<node_frame>::iterator>::iterator repush(const token &t){
         auto iter = data_map.find(t);
         if(iter == data_map.end()){
@@ -1028,7 +1028,7 @@ int main (int argc, char **argv) {
         w.set_str(v);
         s.add_sentence(v);
     }
-    std::cout << make_sentence(w, s, "l¶‚É‚Â‚¢‚Ä") << std::endl;
+    std::cout << make_sentence(w, s, "äººç”Ÿã«ã¤ã„ã¦") << std::endl;
 
     return 0;
 }
